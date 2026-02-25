@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket Test</title>
+</head>
+<body>
+  <h2>Real-Time Chat Test</h2>
+
+  <input id="room" placeholder="Room ID" />
+  <input id="name" placeholder="Your Name" />
+  <input id="msg" placeholder="Message" />
+  <button onclick="joinRoom()">Join</button>
+  <button onclick="sendMessage()">Send</button>
+
+  <h3>Messages</h3>
+  <ul id="messages"></ul>
+
+  <h3>Online Users</h3>
+  <ul id="online-users"></ul>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:5000");
+
+    const messagesUl = document.getElementById("messages");
+    const onlineUl = document.getElementById("online-users");
+
+    // 🔹 Show online users
+    socket.on("online_users", (users) => {
+      onlineUl.innerHTML = "";
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.textContent = user;
+        onlineUl.appendChild(li);
+      });
+    });
+    const typingIndicatorId = "typing-indicator";
+
+// Send typing events when user types
+const msgInput = document.getElementById("msg");
+msgInput.addEventListener("input", () => {
+  const roomId = document.getElementById("room").value;
+  const user = document.getElementById("name").value;
+
+  if (msgInput.value.length > 0) {
+    socket.emit("typing", { roomId, user });
+  } else {
+    socket.emit("stop_typing", { roomId });
+  }
+});
+
+// Show typing indicator
+socket.on("user_typing", (user) => {
+  let li = document.getElementById(typingIndicatorId);
+  if (!li) {
+    li = document.createElement("li");
+    li.id = typingIndicatorId;
+    li.style.fontStyle = "italic";
+    messagesUl.prepend(li); // show at top
+  }
+  li.textContent = `${user} is typing...`;
+});
+
+// Remove typing indicator
+socket.on("stop_typing", () => {
+  const li = document.getElementById(typingIndicatorId);
+  if (li) li.remove();
+});
+
+    // 🔹 Load previous messages
+    socket.on("previous_messages", (messages) => {
+      messagesUl.innerHTML = "";
+      messages.forEach(msg => {
+        const li = document.createElement("li");
+        li.textContent = msg.author + ": " + msg.message;
+        messagesUl.appendChild(li);
+      });
+    });
+
+    // 🔹 Receive new message
+    socket.on("receive_message", (msg) => {
+      const li = document.createElement("li");
+      li.textContent = msg.author + ": " + msg.message;
+      messagesUl.appendChild(li);
+    });
+
+    function joinRoom() {
+      const roomId = document.getElementById("room").value;
+      const user = document.getElementById("name").value;
+
+      if (!roomId || !user) {
+        alert("Enter Room ID and Name");
+        return;
+      }
+
+      socket.emit("join_room", { roomId, userId: user });
+      alert("Joined room " + roomId);
+    }
+
+    function sendMessage() {
+  const roomId = document.getElementById("room").value;
+  const sender = document.getElementById("name").value;
+  const text = document.getElementById("msg").value;
+
+  if (!roomId || !sender || !text) {
+    alert("Fill Room, Name and Message first!");
+    return;
+  }
+
+  socket.emit("send_message", { roomId, sender, text });
+  document.getElementById("msg").value = "";
+}
+  </script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>Socket Test</title>
+</head>
+<body>
+  <h2>Real-Time Chat Test</h2>
+
+  <input id="room" placeholder="Room ID" />
+  <input id="name" placeholder="Your Name" />
+  <input id="msg" placeholder="Message" />
+  <button onclick="joinRoom()">Join</button>
+  <button onclick="sendMessage()">Send</button>
+
+  <ul id="messages"></ul>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:5000");
+    socket.on("online_users", (users) => {
+  console.log("Online Users:", users);
+});
+    // socket.on("connect", () => {
+    //   console.log("Connected:", socket.id);
+    // });
+
+    function joinRoom() {
+      const roomId = document.getElementById("room").value;
+      const user = document.getElementById("name").value;
+
+      socket.emit("join_room", { roomId, userId: user });
+      alert("Joined room " + roomId);
+    }
+
+    function sendMessage() {
+      const roomId = document.getElementById("room").value;
+      const sender = document.getElementById("name").value;
+      const text = document.getElementById("msg").value;
+
+      socket.emit("send_message", { roomId, sender, text });
+    }
+    socket.on("previous_messages", (messages) => {
+  const ul = document.getElementById("messages");
+  ul.innerHTML = "";
+
+  messages.forEach((msg) => {
+    const li = document.createElement("li");
+    li.textContent = msg.author + ": " + msg.message;
+    ul.appendChild(li);
+  });
+});
+    // socket.on("receive_message", (data) => {
+    //   const li = document.createElement("li");
+    //   li.textContent = data.author + ": " + data.message;
+    //   document.getElementById("messages").appendChild(li);
+    // });
+  </script>
+</body>
+</html> -->
