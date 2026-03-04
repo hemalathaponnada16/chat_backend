@@ -22,13 +22,23 @@ app.use(helmet());
 //   origin: process.env.FRONTEND_URL || "http://localhost:5173",
 //   credentials: true,
 // }));
+// app.use(cors({
+//   origin: [
+//     "http://localhost:5173",
+//     "https://chat-frontend-an4r.vercel.app"
+//   ],
+//   credentials: true
+// }))
+import cors from "cors";
+
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://chat-frontend-an4r.vercel.app"
+    "https://chat-frontend-an4r.vercel.app",
+    "https://chat-frontend-an4r-git-main-hemalathaponnada16s-projects.vercel.app"
   ],
   credentials: true
-}))
+}));
 
 // 🔹 Body parser
 app.use(express.json());
