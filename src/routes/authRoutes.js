@@ -25,5 +25,4 @@ router.get("/all-users", async (req, res) => {
     res.status(500).json({ message: "Error fetching users" });
   }
 });
-const Message = require("../models/messageModel");
 module.exports = router;

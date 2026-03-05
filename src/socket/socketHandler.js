@@ -10,7 +10,12 @@ const socketHandler = (io) => {
 socket.on("join_room", async ({ room, author }) => {
   if (!room || !author) return;
 
+  // Keep one active chat room per socket to avoid cross-room message bleed.
+  if (socket.data.currentRoom && socket.data.currentRoom !== room) {
+    socket.leave(socket.data.currentRoom);
+  }
   socket.join(room);
+  socket.data.currentRoom = room;
 
   onlineUsers.set(author, socket.id);
   const users = Array.from(onlineUsers.keys());
@@ -88,7 +93,7 @@ socket.on("send_message", async ({ room, author, message }) => {
     });
 
     socket.on("stop_typing", ({ room, author }) => {
-      if (!room || !author) return;
+      if (!room) return;
       socket.to(room).emit("stop_typing", author);
     });
 
